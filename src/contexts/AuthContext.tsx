@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface User {
   id: string;
@@ -37,35 +38,66 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Check for existing session on mount
   useEffect(() => {
-    // In a real app, we would check Supabase session here
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Check Supabase session
+    const getSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data.session?.user) {
+          setUser({
+            id: data.session.user.id,
+            email: data.session.user.email || '',
+          });
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+          });
+        } else {
+          setUser(null);
+        }
+        setIsLoading(false);
+      }
+    );
+
+    getSession();
+
+    // Cleanup subscription
+    return () => subscription.unsubscribe();
   }, []);
 
-  // Mock login - would use Supabase auth in a real implementation
+  // Login with Supabase auth
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
-      // Mock successful login
-      const userData = { id: "123", email };
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
+      if (error) throw error;
+      
       toast({
         title: "Login successful",
         description: "Welcome back!",
       });
+      
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again.",
+        description: error.message || "Please check your credentials and try again.",
         variant: "destructive",
       });
       console.error("Login error:", error);
@@ -74,27 +106,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Mock signup - would use Supabase auth in a real implementation
+  // Signup with Supabase auth
   const signup = async (email: string, password: string) => {
     setIsLoading(true);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
       
-      // Mock successful signup
-      const userData = { id: "123", email };
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
+      if (error) throw error;
+      
       toast({
         title: "Account created",
         description: "Your account has been created successfully!",
       });
+      
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Signup failed",
-        description: "An error occurred during signup. Please try again.",
+        description: error.message || "An error occurred during signup. Please try again.",
         variant: "destructive",
       });
       console.error("Signup error:", error);
@@ -103,10 +136,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    navigate("/");
+  // Logout with Supabase auth
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (

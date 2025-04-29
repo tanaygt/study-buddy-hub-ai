@@ -101,6 +101,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         variant: "destructive",
       });
       console.error("Login error:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -131,6 +132,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         variant: "destructive",
       });
       console.error("Signup error:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }

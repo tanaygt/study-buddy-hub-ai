@@ -28,11 +28,18 @@ export default function SignupPage() {
       setError("Passwords do not match");
       return;
     }
+    
+    // Password length validation
+    if (password.length < 6) {
+      setError("Password should be at least 6 characters");
+      return;
+    }
 
     try {
       await signup(email, password);
-    } catch (err) {
-      setError("An error occurred during signup. Please try again.");
+    } catch (err: any) {
+      console.error("Signup error:", err);
+      setError(err?.message || "An error occurred during signup. Please try again.");
     }
   };
 
@@ -66,6 +73,7 @@ export default function SignupPage() {
                 onChange={(e) => setPassword(e.target.value)} 
                 required 
               />
+              <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>

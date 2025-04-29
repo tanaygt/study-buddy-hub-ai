@@ -1,73 +1,82 @@
-# Welcome to your Lovable project
 
-## Project info
+# StudyBuddy AI Learning Platform
 
-**URL**: https://lovable.dev/projects/e693b97f-eff7-4db6-a010-87efd1e2d372
+StudyBuddy is a modern web application designed to help students learn more effectively through AI-powered study tools, collaborative study groups, and progress tracking.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- **AI-powered Study Tutor**: Get instant answers to your study questions using Google's Gemini AI
+- **Flashcards**: Create and study AI-generated flashcards on any topic
+- **Study Groups**: Collaborate with other students in virtual study groups
+- **Progress Tracking**: Monitor your learning progress over time
 
-**Use Lovable**
+## Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e693b97f-eff7-4db6-a010-87efd1e2d372) and start prompting.
+This project is built with modern web technologies:
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend**:
+  - React 18+ with TypeScript
+  - Vite for fast development and building
+  - React Router for navigation
+  - Tailwind CSS for styling
+  - Shadcn UI component library
+  - TanStack Query for data fetching
 
-**Use your preferred IDE**
+- **Backend**:
+  - Supabase for authentication, database, and serverless edge functions
+  - Google Gemini AI for intelligent study assistance
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Getting Started
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
 
-Follow these steps:
+- Node.js (v18 or higher)
+- npm or bun
+- Supabase account
+- Google Gemini API key
 
+### Installation
+
+1. Clone the repository:
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+git clone <repository-url>
+cd studybuddy
 ```
 
-**Edit a file directly in GitHub**
+2. Install dependencies:
+```sh
+npm install
+# or
+bun install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Set up your Supabase project and add the Gemini API key as a secret:
+   - Navigate to your Supabase project dashboard
+   - Go to Project Settings > API
+   - Under "Edge Functions", add a new secret named `GEMINI_API_KEY` with your API key value
 
-**Use GitHub Codespaces**
+4. Start the development server:
+```sh
+npm run dev
+# or
+bun run dev
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+5. Open your browser and navigate to `http://localhost:5173`
 
-## What technologies are used for this project?
+## Deployment
 
-This project is built with:
+The application can be deployed using Lovable's built-in deployment features:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+1. Click on "Publish" in the top right corner of the Lovable editor
+2. Follow the prompts to deploy your application
 
-## How can I deploy this project?
+You can also connect a custom domain by navigating to Project > Settings > Domains in Lovable.
 
-Simply open [Lovable](https://lovable.dev/projects/e693b97f-eff7-4db6-a010-87efd1e2d372) and click on Share -> Publish.
+## Contributing
 
-## Can I connect a custom domain to my Lovable project?
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-Yes, you can!
+## License
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is licensed under the MIT License.

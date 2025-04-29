@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -19,7 +20,7 @@ export default function ChatTutorPage() {
     {
       id: "init",
       isUser: false,
-      content: "Hello! I'm your AI study tutor. What would you like to learn about today?",
+      content: "Hello! I'm your AI study tutor powered by Gemini AI. What would you like to learn about today?",
       timestamp: new Date()
     }
   ]);
@@ -50,42 +51,48 @@ export default function ChatTutorPage() {
     setIsLoading(true);
 
     try {
-      // Simulate API call to AI service
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Convert messages to history format (excluding the initial greeting)
+      const messageHistory = messages.slice(1).map(msg => ({
+        isUser: msg.isUser,
+        content: msg.content,
+      }));
 
-      const botResponses: Record<string, string> = {
-        "python": "Python is a high-level, interpreted programming language known for its readability and versatility. It supports multiple programming paradigms including procedural, object-oriented, and functional programming. Python's syntax allows programmers to express concepts in fewer lines of code than languages like C++ or Java.",
-        "loop": "Loops in programming allow you to execute a block of code repeatedly. Common types of loops include:\n\n- For loops: Execute a block of code a fixed number of times\n- While loops: Execute a block as long as a condition is true\n- Do-while loops: Similar to while loops but guarantees at least one execution",
-        "photosynthesis": "Photosynthesis is the process by which green plants and certain other organisms transform light energy into chemical energy. During photosynthesis in green plants, light energy is captured and used to convert water, carbon dioxide, and minerals into oxygen and energy-rich organic compounds.",
-        "history": "History is the study of past events, particularly human affairs. It involves the discovery, collection, organization, and presentation of information about past events. Historians use various sources like documents, oral accounts, and artifacts to study and interpret the past.",
-        "math": "Mathematics is the science of structure, order, and relation that has evolved from counting, measuring, and describing the shapes of objects. It deals with logical reasoning and quantitative calculation.",
-        "chemistry": "Chemistry is the scientific study of the properties and behavior of matter. It involves the study of atoms, molecules, and their interactions. The field is often divided into organic chemistry, inorganic chemistry, biochemistry, physical chemistry, and analytical chemistry."
-      };
+      // Call Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('chat-with-gemini', {
+        body: { 
+          message: input,
+          history: messageHistory
+        }
+      });
 
-      // Find a relevant response based on keywords in the user's message
-      const userInput = input.toLowerCase();
-      const matchedTopic = Object.keys(botResponses).find(key => userInput.includes(key));
-      
-      let responseContent = "I'm not sure about that specific topic, but I'd be happy to help if you provide more details or try another subject like math, science, history, or programming!";
-      
-      if (matchedTopic) {
-        responseContent = botResponses[matchedTopic];
-      }
+      if (error) throw error;
 
       const botMessage: Message = {
         id: Date.now().toString(),
         isUser: false,
-        content: responseContent,
+        content: data.response || "I'm having trouble understanding that. Could you try rephrasing your question?",
         timestamp: new Date()
       };
 
       setMessages(prevMessages => [...prevMessages, botMessage]);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("AI response error:", error);
+      
       toast({
         title: "Error",
-        description: "Failed to get response from AI tutor",
+        description: "Failed to get response from AI tutor. Please try again.",
         variant: "destructive",
       });
+      
+      // Add an error message from the AI
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        isUser: false,
+        content: "I'm experiencing some technical difficulties. Please try again in a moment.",
+        timestamp: new Date()
+      };
+      
+      setMessages(prevMessages => [...prevMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +106,7 @@ export default function ChatTutorPage() {
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-study-200">AI</AvatarFallback>
             </Avatar>
-            AI Study Tutor
+            Gemini AI Study Tutor
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">

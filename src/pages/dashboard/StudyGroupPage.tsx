@@ -56,20 +56,31 @@ export default function StudyGroupPage() {
 
   const fetchJoinedGroups = async () => {
     try {
+      if (!user) return;
+      
       const { data, error } = await supabase
         .from('group_members')
-        .select('group_id, groups(id, name, code)')
-        .eq('user_id', user?.id);
+        .select(`
+          group_id,
+          groups (
+            id,
+            name,
+            code
+          )
+        `)
+        .eq('user_id', user.id);
       
       if (error) throw error;
       
-      const groups = data.map(item => ({
-        id: item.groups.id,
-        name: item.groups.name,
-        code: item.groups.code
-      }));
-      
-      setJoinedGroups(groups);
+      if (data) {
+        const groups = data.map(item => ({
+          id: item.groups?.id || "",
+          name: item.groups?.name || "",
+          code: item.groups?.code || ""
+        }));
+        
+        setJoinedGroups(groups);
+      }
     } catch (error: any) {
       console.error("Error fetching groups:", error.message);
     }
@@ -86,27 +97,34 @@ export default function StudyGroupPage() {
           content, 
           created_at, 
           sender_id, 
-          profiles(id, first_name, last_name, avatar_url)
+          profiles (
+            id,
+            first_name,
+            last_name,
+            avatar_url
+          )
         `)
         .eq('group_id', activeGroup.id)
         .order('created_at', { ascending: true });
       
       if (error) throw error;
       
-      const formattedMessages = data.map(msg => ({
-        id: msg.id,
-        sender: { 
-          name: msg.profiles.first_name && msg.profiles.last_name 
-            ? `${msg.profiles.first_name} ${msg.profiles.last_name}`
-            : "User",
-          avatar: msg.profiles.avatar_url
-        },
-        content: msg.content,
-        timestamp: new Date(msg.created_at),
-        isAI: false // Add logic here if you want to identify AI messages
-      }));
-      
-      setMessages(formattedMessages);
+      if (data) {
+        const formattedMessages = data.map(msg => ({
+          id: msg.id,
+          sender: { 
+            name: msg.profiles?.first_name && msg.profiles?.last_name 
+              ? `${msg.profiles.first_name} ${msg.profiles.last_name}`
+              : "User",
+            avatar: msg.profiles?.avatar_url || undefined
+          },
+          content: msg.content || "",
+          timestamp: new Date(msg.created_at || Date.now()),
+          isAI: false
+        }));
+        
+        setMessages(formattedMessages);
+      }
     } catch (error: any) {
       console.error("Error fetching messages:", error.message);
     }
@@ -139,7 +157,7 @@ export default function StudyGroupPage() {
         .eq('code', groupCode)
         .single();
       
-      if (groupError) {
+      if (groupError || !groupData) {
         toast({
           title: "Error",
           description: "Invalid group code",
@@ -248,7 +266,7 @@ export default function StudyGroupPage() {
         .select('id, name, code')
         .single();
       
-      if (groupError) throw groupError;
+      if (groupError || !groupData) throw groupError;
 
       // Add creator as a member
       const { error: memberError } = await supabase

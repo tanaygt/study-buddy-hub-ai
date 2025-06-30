@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -96,13 +95,7 @@ export default function StudyGroupPage() {
           id, 
           content, 
           created_at, 
-          sender_id, 
-          profiles (
-            id,
-            first_name,
-            last_name,
-            avatar_url
-          )
+          sender_id
         `)
         .eq('group_id', activeGroup.id)
         .order('created_at', { ascending: true });
@@ -113,10 +106,7 @@ export default function StudyGroupPage() {
         const formattedMessages = data.map(msg => ({
           id: msg.id,
           sender: { 
-            name: msg.profiles?.first_name && msg.profiles?.last_name 
-              ? `${msg.profiles.first_name} ${msg.profiles.last_name}`
-              : "User",
-            avatar: msg.profiles?.avatar_url || undefined
+            name: msg.sender_id === user?.id ? "You" : "User"
           },
           content: msg.content || "",
           timestamp: new Date(msg.created_at || Date.now()),

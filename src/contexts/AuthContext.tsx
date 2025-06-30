@@ -107,7 +107,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Signup with Supabase auth
+  // Generate confirmation token
+  const generateConfirmationToken = () => {
+    return crypto.randomUUID() + '-' + Date.now().toString(36);
+  };
+
+  // Signup with Supabase auth and send confirmation email
   const signup = async (email: string, password: string) => {
     setIsLoading(true);
     
@@ -118,11 +123,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
       
       if (error) throw error;
-      
-      toast({
-        title: "Account created",
-        description: "Your account has been created successfully!",
-      });
+
+      // Generate confirmation token and send email
+      if (data.user) {
+        const confirmationToken = generateConfirmationToken();
+        
+        console.log("Sending confirmation email for user:", data.user.id);
+        
+        // Call our edge function to send confirmation email
+        const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
+          body: {
+            email: email,
+            userId: data.user.id,
+            confirmationToken: confirmationToken,
+          },
+        });
+
+        if (emailError) {
+          console.error("Error sending confirmation email:", emailError);
+          // Don't block signup if email fails
+          toast({
+            title: "Account created",
+            description: "Your account was created but we couldn't send the confirmation email. Please contact support.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Account created successfully!",
+            description: "Please check your email and click the confirmation link to activate your account.",
+          });
+        }
+      }
       
       navigate("/dashboard");
     } catch (error: any) {

@@ -11,7 +11,7 @@ export default function LandingPage() {
       <header className="px-4 lg:px-6 py-4 border-b">
         <div className="container flex items-center justify-between">
           <Link to="/" className="flex items-center">
-            <span className="text-2xl font-bold gradient-text">AI Study Buddy Hub</span>
+            <span className="text-2xl font-bold gradient-text">StudyBuddy AI</span>
           </Link>
           <nav className="hidden md:flex gap-6">
             <Link to="#features" className="text-sm font-medium hover:text-primary">
@@ -58,8 +58,9 @@ export default function LandingPage() {
                   transition={{ duration: 0.5, delay: 0.1 }}
                   className="text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed"
                 >
-                  Study smarter with our AI-powered platform. Create study groups, get instant help from
-                  AI tutors, generate flashcards, and track your progress all in one place.
+                  An intelligent learning platform that revolutionizes how students study and collaborate. 
+                  Create study groups, get instant AI tutoring, generate smart flashcards, and track your 
+                  academic progress with advanced analytics - all in one secure, modern platform.
                 </motion.p>
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
@@ -100,7 +101,7 @@ export default function LandingPage() {
                   <div className="w-full max-w-sm bg-study-50/90 backdrop-blur-sm rounded-lg p-4 shadow-sm border mt-4">
                     <div className="space-y-2">
                       <div className="bg-study-100 p-2 rounded-lg">
-                        <p className="text-sm font-medium text-study-800">Study Buddy AI</p>
+                        <p className="text-sm font-medium text-study-800">StudyBuddy AI</p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-sm">
@@ -129,7 +130,7 @@ export default function LandingPage() {
                 <div className="inline-block rounded-lg bg-study-100 px-3 py-1 text-sm">Features</div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Everything you need to excel</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Our platform combines the power of AI with collaborative tools to help you study more effectively
+                  Our platform combines cutting-edge AI technology with collaborative tools to enhance your learning experience
                 </p>
               </div>
             </div>
@@ -137,22 +138,22 @@ export default function LandingPage() {
               {[
                 {
                   title: "Study Group Chat",
-                  description: "Create or join study groups and chat in real-time with other students",
+                  description: "Create or join study groups with real-time messaging and secure collaboration",
                   icon: "👥"
                 },
                 {
                   title: "AI Chat Tutor",
-                  description: "Get instant help from our AI tutor for any subject",
+                  description: "Get instant, personalized help from our advanced AI tutor for any subject",
                   icon: "🤖"
                 },
                 {
                   title: "Smart Flashcards",
-                  description: "Generate AI-powered flashcards to test your knowledge",
+                  description: "Generate AI-powered flashcards tailored to your learning style and pace",
                   icon: "🃏"
                 },
                 {
-                  title: "Progress Tracking",
-                  description: "Monitor your study habits and improvement over time",
+                  title: "Progress Analytics",
+                  description: "Track your study habits and academic improvement with detailed insights",
                   icon: "📈"
                 }
               ].map((feature, index) => (
@@ -181,7 +182,7 @@ export default function LandingPage() {
                   Ready to transform your study habits?
                 </h2>
                 <p className="max-w-[900px] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed opacity-90">
-                  Join thousands of students who are already studying smarter, not harder.
+                  Join thousands of students who are already studying smarter with our AI-powered platform.
                 </p>
               </div>
               <div className="mx-auto w-full max-w-sm space-y-2">
@@ -198,7 +199,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full border-t px-4 md:px-6">
-        <p className="text-xs text-muted-foreground">© 2025 AI Study Buddy Hub. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">© 2025 StudyBuddy AI. Created by Tanay Shrivastava. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link to="#" className="text-xs hover:underline underline-offset-4">Terms of Service</Link>
           <Link to="#" className="text-xs hover:underline underline-offset-4">Privacy</Link>

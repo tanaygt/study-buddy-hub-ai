@@ -46,12 +46,50 @@ export default function StudyGroupPage() {
     }
   }, [user]);
 
-  // Fetch messages when active group changes
+  // Fetch messages when active group changes and set up real-time subscription
   useEffect(() => {
     if (activeGroup) {
       fetchGroupMessages();
+      
+      // Set up real-time subscription for new messages
+      const channel = supabase
+        .channel(`group_messages:${activeGroup.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'group_messages',
+            filter: `group_id=eq.${activeGroup.id}`,
+          },
+          (payload) => {
+            const newMessage = payload.new;
+            // Only add if it's not from the current user (to avoid duplicates from optimistic updates)
+            if (newMessage.sender_id !== user?.id) {
+              const formattedMessage: Message = {
+                id: newMessage.id,
+                sender: { 
+                  name: "User"
+                },
+                content: newMessage.content || "",
+                timestamp: new Date(newMessage.created_at || Date.now()),
+                isAI: false
+              };
+              setMessages(prev => [...prev, formattedMessage]);
+            } else {
+              // Refresh to get the properly formatted message
+              fetchGroupMessages();
+            }
+          }
+        )
+        .subscribe();
+
+      // Cleanup subscription when group changes or component unmounts
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
-  }, [activeGroup]);
+  }, [activeGroup, user]);
 
   const fetchJoinedGroups = async () => {
     try {

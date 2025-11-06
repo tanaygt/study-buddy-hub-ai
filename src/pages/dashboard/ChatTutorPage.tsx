@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { chatWithGemini } from "@/lib/gemini";
 
 interface Message {
   id: string;
@@ -57,20 +58,31 @@ export default function ChatTutorPage() {
         content: msg.content,
       }));
 
-      // Call Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('chat-with-gemini', {
-        body: { 
-          message: input,
-          history: messageHistory
-        }
-      });
+      // Try using client-side Gemini first, fallback to Edge Function
+      let response: string;
+      
+      try {
+        // Use client-side Gemini API
+        response = await chatWithGemini(input, messageHistory);
+      } catch (clientError) {
+        console.log("Client-side Gemini failed, trying Edge Function:", clientError);
+        
+        // Fallback to Supabase Edge Function
+        const { data, error } = await supabase.functions.invoke('chat-with-gemini', {
+          body: { 
+            message: input,
+            history: messageHistory
+          }
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+        response = data.response || "I'm having trouble understanding that. Could you try rephrasing your question?";
+      }
 
       const botMessage: Message = {
         id: Date.now().toString(),
         isUser: false,
-        content: data.response || "I'm having trouble understanding that. Could you try rephrasing your question?",
+        content: response,
         timestamp: new Date()
       };
 

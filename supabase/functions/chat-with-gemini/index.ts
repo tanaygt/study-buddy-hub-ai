@@ -28,8 +28,8 @@ serve(async (req) => {
     // Initialize the Gemini API
     const genAI = new GoogleGenerativeAI(apiKey);
     
-    // For text-only input, use the gemini-2.0-flash model
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    // Use Gemini 2.0 Flash Experimental model
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
     // Convert history to the format expected by Gemini
     const chatHistory = history?.map(msg => ({

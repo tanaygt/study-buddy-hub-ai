@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
+import { generateFlashcards } from "@/lib/gemini";
 
 interface Flashcard {
   id: string;
@@ -42,57 +43,27 @@ export default function FlashcardsPage() {
     setIsGenerating(true);
 
     try {
-      // Simulate API call to AI service
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Mock generated flashcards based on topic
-      let generatedCards: Flashcard[] = [];
-
-      if (topic.toLowerCase().includes("javascript")) {
-        generatedCards = [
-          { id: "1", question: "What is a closure in JavaScript?", answer: "A closure is a function that has access to its own scope, the scope of the outer function, and the global scope.", topic },
-          { id: "2", question: "What is the difference between let and var?", answer: "let is block-scoped while var is function-scoped. Variables declared with let cannot be redeclared in the same scope.", topic },
-          { id: "3", question: "What is a Promise in JavaScript?", answer: "A Promise is an object representing the eventual completion or failure of an asynchronous operation and its resulting value.", topic },
-          { id: "4", question: "What is event bubbling?", answer: "Event bubbling is a type of event propagation where the event first triggers on the innermost target element, and then successively triggers on the ancestors.", topic },
-          { id: "5", question: "What is the purpose of the 'this' keyword?", answer: "The 'this' keyword refers to the object it belongs to. In a method, 'this' refers to the owner object. Alone, 'this' refers to the global object.", topic }
-        ];
-      } else if (topic.toLowerCase().includes("history")) {
-        generatedCards = [
-          { id: "1", question: "When did World War II begin?", answer: "World War II began on September 1, 1939, with Germany's invasion of Poland.", topic },
-          { id: "2", question: "Who was the first President of the United States?", answer: "George Washington was the first President of the United States, serving from 1789 to 1797.", topic },
-          { id: "3", question: "What was the Renaissance?", answer: "The Renaissance was a period of European cultural, artistic, political, and economic 'rebirth' that spanned the 14th to the 17th century.", topic },
-          { id: "4", question: "When did the Roman Empire fall?", answer: "The Western Roman Empire officially fell in 476 CE when Emperor Romulus Augustulus was deposed by Odoacer.", topic },
-          { id: "5", question: "What was the Industrial Revolution?", answer: "The Industrial Revolution was a period of major industrialization and innovation that took place during the late 1700s and early 1800s.", topic }
-        ];
-      } else if (topic.toLowerCase().includes("biology")) {
-        generatedCards = [
-          { id: "1", question: "What is photosynthesis?", answer: "Photosynthesis is the process used by plants, algae, and certain bacteria to convert light energy into chemical energy.", topic },
-          { id: "2", question: "What is DNA?", answer: "DNA (Deoxyribonucleic Acid) is a molecule composed of two chains that coil around each other to form a double helix carrying genetic instructions.", topic },
-          { id: "3", question: "What is cellular respiration?", answer: "Cellular respiration is the process by which cells convert nutrients into ATP, the energy currency of cells.", topic },
-          { id: "4", question: "What is natural selection?", answer: "Natural selection is the process through which populations of living organisms adapt and change due to the survival of individuals with favorable traits.", topic },
-          { id: "5", question: "What are the main parts of a cell?", answer: "The main parts of a eukaryotic cell include the cell membrane, nucleus, cytoplasm, mitochondria, endoplasmic reticulum, and Golgi apparatus.", topic }
-        ];
-      } else {
-        // Generic cards for any other topic
-        generatedCards = [
-          { id: "1", question: `What is the definition of ${topic}?`, answer: `This would be filled with a comprehensive definition of ${topic}.`, topic },
-          { id: "2", question: `What are the key components of ${topic}?`, answer: `This would list and explain the main elements or concepts related to ${topic}.`, topic },
-          { id: "3", question: `Who are the important figures in ${topic}?`, answer: `This would name and describe significant people who contributed to ${topic}.`, topic },
-          { id: "4", question: `What is the historical development of ${topic}?`, answer: `This would provide a timeline of how ${topic} evolved over time.`, topic },
-          { id: "5", question: `How is ${topic} applied in real-world scenarios?`, answer: `This would explain practical applications and examples of ${topic} in use.`, topic }
-        ];
-      }
+      const count = parseInt(numCards) || 5;
+      const generatedFlashcards = await generateFlashcards(topic, count);
+      
+      const generatedCards: Flashcard[] = generatedFlashcards.map((card, index) => ({
+        id: (index + 1).toString(),
+        question: card.question,
+        answer: card.answer,
+        topic: topic,
+      }));
 
       setFlashcards(generatedCards);
       toast({
         title: "Success",
-        description: `Generated ${generatedCards.length} flashcards on ${topic}`,
+        description: `Generated ${generatedCards.length} flashcards on ${topic} using Gemini AI`,
       });
       setTab("study");
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Error generating flashcards:", error);
       toast({
         title: "Error",
-        description: "Failed to generate flashcards",
+        description: error.message || "Failed to generate flashcards. Please try again.",
         variant: "destructive",
       });
     } finally {

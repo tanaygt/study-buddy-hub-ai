@@ -87,6 +87,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
       
       if (error) throw error;
+
+      // Ensure user has a profile
+      if (data.user) {
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: data.user.id,
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: 'id'
+            });
+
+          if (profileError) {
+            console.error("Error ensuring profile exists:", profileError);
+            // Continue anyway - profile might already exist
+          }
+        } catch (profileErr) {
+          console.error("Profile check error:", profileErr);
+          // Continue anyway
+        }
+      }
       
       toast({
         title: "Login successful",
@@ -95,9 +117,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       navigate("/dashboard");
     } catch (error: any) {
+      // Handle specific Supabase errors
+      let errorMessage = "Please check your credentials and try again.";
+      
+      if (error.message?.includes("Invalid login credentials")) {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else if (error.message?.includes("Email not confirmed")) {
+        errorMessage = "Please confirm your email address before logging in. Check your inbox for a confirmation link.";
+      } else if (error.message?.includes("too many requests")) {
+        errorMessage = "Too many login attempts. Please wait a moment and try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Login failed",
-        description: error.message || "Please check your credentials and try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       console.error("Login error:", error);
@@ -120,46 +155,74 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
       });
       
       if (error) throw error;
 
-      // Generate confirmation token and send email
-      if (data.user) {
-        const confirmationToken = generateConfirmationToken();
+      // Check if user needs email confirmation
+      if (data.user && !data.session) {
+        // Email confirmation required by Supabase settings
+        // Note: Edge function for custom email is optional
+        // Supabase will send its own confirmation email if configured
         
-        console.log("Sending confirmation email for user:", data.user.id);
-        
-        // Call our edge function to send confirmation email
-        const { error: emailError } = await supabase.functions.invoke('send-confirmation-email', {
-          body: {
-            email: email,
-            userId: data.user.id,
-            confirmationToken: confirmationToken,
-          },
+        toast({
+          title: "Account created successfully!",
+          description: "Please check your email and click the confirmation link to activate your account. You can then log in.",
         });
-
-        if (emailError) {
-          console.error("Error sending confirmation email:", emailError);
-          // Don't block signup if email fails
-          toast({
-            title: "Account created",
-            description: "Your account was created but we couldn't send the confirmation email. Please contact support.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Account created successfully!",
-            description: "Please check your email and click the confirmation link to activate your account.",
-          });
-        }
+        
+        // Don't navigate to dashboard if email confirmation is required
+        navigate("/login");
+        return;
       }
-      
-      navigate("/dashboard");
+
+      // User is automatically confirmed (if Supabase settings allow it)
+      if (data.user && data.session) {
+        // Ensure profile is created
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: data.user.id,
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: 'id'
+            });
+
+          if (profileError) {
+            console.error("Error creating profile:", profileError);
+            // Profile might already exist, which is fine
+          }
+        } catch (profileErr) {
+          console.error("Profile creation error:", profileErr);
+        }
+
+        toast({
+          title: "Account created successfully!",
+          description: "Welcome to Study Buddy Hub AI!",
+        });
+        
+        navigate("/dashboard");
+      }
     } catch (error: any) {
+      // Handle specific Supabase errors
+      let errorMessage = "An error occurred during signup. Please try again.";
+      
+      if (error.message?.includes("already registered")) {
+        errorMessage = "This email is already registered. Please try logging in instead.";
+      } else if (error.message?.includes("invalid email")) {
+        errorMessage = "Please enter a valid email address.";
+      } else if (error.message?.includes("password")) {
+        errorMessage = "Password must be at least 6 characters long.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       toast({
         title: "Signup failed",
-        description: error.message || "An error occurred during signup. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       console.error("Signup error:", error);
